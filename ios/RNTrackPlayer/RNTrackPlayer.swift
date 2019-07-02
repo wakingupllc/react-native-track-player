@@ -152,6 +152,12 @@ public class RNTrackPlayer: RCTEventEmitter {
     public func destroy() {
         print("Destroying player")
     }
+
+    @objc(isServiceRunning:rejecter:)
+    public func isServiceRunning(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        print("Getting service status")
+        resolve(player != nil)
+    }
     
     @objc(updateOptions:resolver:rejecter:)
     public func update(options: [String: Any], resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {

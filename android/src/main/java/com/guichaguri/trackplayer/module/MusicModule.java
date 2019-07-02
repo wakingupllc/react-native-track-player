@@ -6,6 +6,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.media.RatingCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -67,8 +68,10 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
 
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
-        binder = (MusicBinder)service;
-        connecting = false;
+        synchronized(Utils.PLAYBACK_SERVICE_SETUP_LOCK) {
+            binder = (MusicBinder)service;
+            connecting = false;
+        }
 
         // Triggers all callbacks
         while(!initCallbacks.isEmpty()) {
@@ -78,28 +81,32 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
 
     @Override
     public void onServiceDisconnected(ComponentName name) {
-        binder = null;
-        connecting = false;
+        synchronized(Utils.PLAYBACK_SERVICE_SETUP_LOCK) {
+            binder = null;
+            connecting = false;
+        }
     }
 
     /**
      * Waits for a connection to the service and/or runs the {@link Runnable} in the player thread
      */
     private void waitForConnection(Runnable r) {
-        if(binder != null) {
-            binder.post(r);
-            return;
-        } else {
-            initCallbacks.add(r);
-        }
+        synchronized(Utils.PLAYBACK_SERVICE_SETUP_LOCK) {
+            if (binder != null) {
+                binder.post(r);
+                return;
+            } else {
+                initCallbacks.add(r);
+            }
 
-        if(connecting) return;
+            if (connecting) return;
+        }
 
         ReactApplicationContext context = getReactApplicationContext();
 
         // Binds the service to get a MediaWrapper instance
         Intent intent = new Intent(context, MusicService.class);
-        context.startService(intent);
+        ContextCompat.startForegroundService(context, intent);
         intent.setAction(Utils.CONNECT_INTENT);
         context.bindService(intent, this, 0);
 
@@ -146,6 +153,11 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
     }
 
     @ReactMethod
+    public void isServiceRunning(final Promise promise) {
+        promise.resolve(binder != null);
+    }
+
+    @ReactMethod
     public void setupPlayer(ReadableMap data, final Promise promise) {
         final Bundle options = Arguments.toBundle(data);
 
@@ -155,9 +167,11 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
     @ReactMethod
     public void destroy() {
         try {
-            if(binder != null) {
-                binder.destroy();
-                binder = null;
+            synchronized(Utils.PLAYBACK_SERVICE_SETUP_LOCK) {
+                if(binder != null) {
+                    binder.destroy();
+                    binder = null;
+                }
             }
 
             ReactContext context = getReactApplicationContext();
