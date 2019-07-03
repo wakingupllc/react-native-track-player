@@ -50,16 +50,14 @@ public class MusicService extends HeadlessJsTaskService {
     }
 
     public void destroy() {
-        synchronized(Utils.PLAYBACK_SERVICE_SETUP_LOCK) {
-            if(handler != null) {
-                handler.removeMessages(0);
-                handler = null;
-            }
+        if(handler != null) {
+            handler.removeMessages(0);
+            handler = null;
+        }
 
-            if(manager != null) {
-                manager.destroy();
-                manager = null;
-            }
+        if(manager != null) {
+            manager.destroy();
+            manager = null;
         }
     }
 
@@ -78,10 +76,8 @@ public class MusicService extends HeadlessJsTaskService {
     public void onCreate() {
         super.onCreate();
         startAndStopService();
-        synchronized(Utils.PLAYBACK_SERVICE_SETUP_LOCK) {
-            manager = new MusicManager(this);
-            handler = new Handler();
-        }
+        manager = new MusicManager(this);
+        handler = new Handler();
     }
 
     private void onStartForeground() {

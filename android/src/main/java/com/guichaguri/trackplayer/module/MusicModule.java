@@ -68,10 +68,8 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
 
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
-        synchronized(Utils.PLAYBACK_SERVICE_SETUP_LOCK) {
-            binder = (MusicBinder)service;
-            connecting = false;
-        }
+        binder = (MusicBinder)service;
+        connecting = false;
 
         // Triggers all callbacks
         while(!initCallbacks.isEmpty()) {
@@ -81,26 +79,22 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
 
     @Override
     public void onServiceDisconnected(ComponentName name) {
-        synchronized(Utils.PLAYBACK_SERVICE_SETUP_LOCK) {
-            binder = null;
-            connecting = false;
-        }
+        binder = null;
+        connecting = false;
     }
 
     /**
      * Waits for a connection to the service and/or runs the {@link Runnable} in the player thread
      */
     private void waitForConnection(Runnable r) {
-        synchronized(Utils.PLAYBACK_SERVICE_SETUP_LOCK) {
-            if (binder != null) {
-                binder.post(r);
-                return;
-            } else {
-                initCallbacks.add(r);
-            }
-
-            if (connecting) return;
+        if (binder != null) {
+            binder.post(r);
+            return;
+        } else {
+            initCallbacks.add(r);
         }
+
+        if (connecting) return;
 
         ReactApplicationContext context = getReactApplicationContext();
 
@@ -167,11 +161,9 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
     @ReactMethod
     public void destroy() {
         try {
-            synchronized(Utils.PLAYBACK_SERVICE_SETUP_LOCK) {
-                if(binder != null) {
-                    binder.destroy();
-                    binder = null;
-                }
+            if(binder != null) {
+                binder.destroy();
+                binder = null;
             }
 
             ReactContext context = getReactApplicationContext();
