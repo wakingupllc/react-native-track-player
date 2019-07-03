@@ -100,6 +100,7 @@ declare namespace RNTrackPlayer {
 
   // General
 
+  export function isServiceRunning(): Promise<boolean>;
   export function setupPlayer(options?: PlayerOptions): Promise<void>;
   export function destroy(): void;
   export function updateOptions(options: MetadataOptions): void;

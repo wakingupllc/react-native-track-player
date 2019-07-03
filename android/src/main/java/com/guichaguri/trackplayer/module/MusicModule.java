@@ -6,6 +6,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.media.RatingCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -86,20 +87,20 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
      * Waits for a connection to the service and/or runs the {@link Runnable} in the player thread
      */
     private void waitForConnection(Runnable r) {
-        if(binder != null) {
+        if (binder != null) {
             binder.post(r);
             return;
         } else {
             initCallbacks.add(r);
         }
 
-        if(connecting) return;
+        if (connecting) return;
 
         ReactApplicationContext context = getReactApplicationContext();
 
         // Binds the service to get a MediaWrapper instance
         Intent intent = new Intent(context, MusicService.class);
-        context.startService(intent);
+        ContextCompat.startForegroundService(context, intent);
         intent.setAction(Utils.CONNECT_INTENT);
         context.bindService(intent, this, 0);
 
@@ -143,6 +144,11 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
         constants.put("RATING_PERCENTAGE", RatingCompat.RATING_PERCENTAGE);
 
         return constants;
+    }
+
+    @ReactMethod
+    public void isServiceRunning(final Promise promise) {
+        promise.resolve(binder != null);
     }
 
     @ReactMethod

@@ -2,7 +2,6 @@ package com.guichaguri.trackplayer.service;
 
 import android.app.Activity;
 import android.app.Notification;
-import android.app.NotificationChannel;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -11,6 +10,8 @@ import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.media.session.MediaButtonReceiver;
+
+import com.guichaguri.trackplayer.service.Utils;
 
 import android.support.v4.media.session.MediaSessionCompat;
 import com.facebook.react.HeadlessJsTaskService;
@@ -60,6 +61,25 @@ public class MusicService extends HeadlessJsTaskService {
         }
     }
 
+    private void startAndStopService() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Notification notification = Utils.createBlankSetupNotification(this);
+            startForeground(1, notification);
+            stopForeground(true);
+        } else {
+            startForeground(1, new Notification());
+            stopSelf();
+        }
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        startAndStopService();
+        manager = new MusicManager(this);
+        handler = new Handler();
+    }
+
     private void onStartForeground() {
         boolean serviceForeground = false;
 
@@ -69,22 +89,15 @@ public class MusicService extends HeadlessJsTaskService {
         }
 
         if(!serviceForeground) {
-            ReactInstanceManager reactInstanceManager = getReactNativeHost().getReactInstanceManager();
-            ReactContext reactContext = reactInstanceManager.getCurrentReactContext();
+            return;
+        }
 
-            // Checks whether there is a React activity
-            if(reactContext == null || !reactContext.hasCurrentActivity()) {
-                String channel = null;
+        ReactInstanceManager reactInstanceManager = getReactNativeHost().getReactInstanceManager();
+        ReactContext reactContext = reactInstanceManager.getCurrentReactContext();
 
-                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    channel = NotificationChannel.DEFAULT_CHANNEL_ID;
-                }
-
-                // Sets the service to foreground with an empty notification
-                startForeground(1, new NotificationCompat.Builder(this, channel).build());
-                // Stops the service right after
-                stopSelf();
-            }
+        // Checks whether there is a React activity
+        if(reactContext == null || !reactContext.hasCurrentActivity()) {
+            startAndStopService();
         }
     }
 
@@ -111,11 +124,8 @@ public class MusicService extends HeadlessJsTaskService {
             return START_NOT_STICKY;
         }
 
-        manager = new MusicManager(this);
-        handler = new Handler();
-
         super.onStartCommand(intent, flags, startId);
-        return START_STICKY;
+        return START_NOT_STICKY;
     }
 
     @Override
