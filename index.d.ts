@@ -21,7 +21,9 @@ declare namespace RNTrackPlayer {
     | "remote-jump-backward"
     | "remote-seek"
     | "remote-set-rating"
-    | "remote-duck";
+    | "remote-duck"
+    | "service-connected"
+    | "service-disconnected";
 
   export type TrackType =
     | "default"
@@ -100,7 +102,6 @@ declare namespace RNTrackPlayer {
 
   // General
 
-  export function isServiceRunning(): Promise<boolean>;
   export function setupPlayer(options?: PlayerOptions): Promise<void>;
   export function destroy(): void;
   export function updateOptions(options: MetadataOptions): void;
@@ -112,7 +113,7 @@ declare namespace RNTrackPlayer {
   export function skip(trackId: string): Promise<void>;
   export function skipToNext(): Promise<void>;
   export function skipToPrevious(): Promise<void>;
-  export function updateMetadataForTrack(id: string, metadata: TrackMetadata) : Promise<void>;
+  export function updateMetadataForTrack(id: string, metadata: TrackMetadata): Promise<void>;
   export function removeUpcomingTracks(): Promise<void>;
 
   // Player Playback Commands

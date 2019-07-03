@@ -75,12 +75,18 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
         while(!initCallbacks.isEmpty()) {
             binder.post(initCallbacks.remove());
         }
+
+        ReactContext context = getReactApplicationContext();
+        Utils.emit(context, MusicEvents.SERVICE_CONNECTED, null);
     }
 
     @Override
     public void onServiceDisconnected(ComponentName name) {
         binder = null;
         connecting = false;
+
+        ReactContext context = getReactApplicationContext();
+        Utils.emit(context, MusicEvents.SERVICE_DISCONNECTED, null);
     }
 
     /**
@@ -144,11 +150,6 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
         constants.put("RATING_PERCENTAGE", RatingCompat.RATING_PERCENTAGE);
 
         return constants;
-    }
-
-    @ReactMethod
-    public void isServiceRunning(final Promise promise) {
-        promise.resolve(binder != null);
     }
 
     @ReactMethod

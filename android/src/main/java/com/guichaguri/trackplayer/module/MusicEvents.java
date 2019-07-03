@@ -36,6 +36,10 @@ public class MusicEvents extends BroadcastReceiver {
     public static final String PLAYBACK_ERROR = "playback-error";
     public static final String PLAYBACK_UNBIND = "playback-unbind";
 
+    // Service Events
+    public static final String SERVICE_CONNECTED = "service-connected";
+    public static final String SERVICE_DISCONNECTED = "service-disconnected";
+
     private final ReactContext reactContext;
 
     public MusicEvents(ReactContext reactContext) {
