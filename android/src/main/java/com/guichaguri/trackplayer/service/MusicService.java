@@ -41,12 +41,7 @@ public class MusicService extends HeadlessJsTaskService {
     }
 
     public void emit(String event, Bundle data) {
-        Intent intent = new Intent(Utils.EVENT_INTENT);
-
-        intent.putExtra("event", event);
-        if(data != null) intent.putExtra("data", data);
-
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+        Utils.emit(this, event, data);
     }
 
     public void destroy() {

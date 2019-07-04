@@ -3,6 +3,7 @@ package com.guichaguri.trackplayer.service;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.content.Intent;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.Resources;
@@ -10,6 +11,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.media.RatingCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import com.facebook.react.bridge.Promise;
@@ -186,5 +188,14 @@ public class Utils {
                 .setCategory(Notification.CATEGORY_SERVICE)
                 .build();
         return notification;
+    }
+
+    public static void emit(Context context, String event, Bundle data) {
+        Intent intent = new Intent(Utils.EVENT_INTENT);
+
+        intent.putExtra("event", event);
+        if(data != null) intent.putExtra("data", data);
+
+        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
 }
