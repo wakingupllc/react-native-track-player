@@ -2,6 +2,7 @@ package com.guichaguri.trackplayer.module;
 
 import android.content.ComponentName;
 import android.content.Intent;
+import android.content.Context;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
@@ -47,6 +48,7 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
 
     @Override
     public void initialize() {
+        Log.e(Utils.LOG, "initialize -- initialize -- initialize")
         ReactContext context = getReactApplicationContext();
         LocalBroadcastManager manager = LocalBroadcastManager.getInstance(context);
 
@@ -70,6 +72,9 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
     public void onServiceConnected(ComponentName name, IBinder service) {
         binder = (MusicBinder)service;
         connecting = false;
+
+        
+        Log.e(Utils.LOG, "MusicModule: Connected");
 
         // Triggers all callbacks
         while(!initCallbacks.isEmpty()) {
@@ -100,14 +105,16 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
             initCallbacks.add(r);
         }
 
-        if (connecting) return;
+        if (connecting) {
+            return;
+        }
 
+        Log.e(Utils.LOG, "MusicModule: Connecting");
         ReactApplicationContext context = getReactApplicationContext();
 
         // Binds the service to get a MediaWrapper instance
-        Intent intent = new Intent(context, MusicService.class);
+        final Intent intent = MusicService.createIntent(context);
         ContextCompat.startForegroundService(context, intent);
-        intent.setAction(Utils.CONNECT_INTENT);
         context.bindService(intent, this, 0);
 
         connecting = true;

@@ -16,6 +16,8 @@ import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.support.annotation.RequiresApi;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultLoadControl;
@@ -184,6 +186,18 @@ public class MusicManager implements OnAudioFocusChangeListener {
         Bundle bundle = new Bundle();
         bundle.putInt("state", state);
         service.emit(MusicEvents.PLAYBACK_STATE, bundle);
+
+        switch (state) {
+            case PlaybackStateCompat.STATE_PLAYING:
+                moveServiceToStartedState();
+                break;
+            case PlaybackStateCompat.STATE_STOPPED:
+                moveServiceOutOfStartedState();
+                break;
+            default:
+                break;
+        }
+
         metadata.updatePlayback(playback);
     }
 
@@ -318,5 +332,21 @@ public class MusicManager implements OnAudioFocusChangeListener {
         // Release the locks
         if(wifiLock.isHeld()) wifiLock.release();
         if(wakeLock.isHeld()) wakeLock.release();
+    }
+
+    private void moveServiceToStartedState() {
+        if (service.isServiceStarted()) {
+            return;
+        }
+
+        ContextCompat.startForegroundService(service.getApplicationContext(), new Intent(service.getApplicationContext(), MusicService.class));
+        service.start();
+    }
+
+    private void moveServiceOutOfStartedState() {
+        if (!service.isServiceStarted()) {
+            return;
+        }
+        service.stop();
     }
 }

@@ -292,7 +292,7 @@ public class MetadataManager {
     }
 
     public void destroy() {
-        service.stopForeground(true);
+        service.stop();
 
         session.setActive(false);
         session.release();
