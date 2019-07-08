@@ -2,8 +2,10 @@ package com.guichaguri.trackplayer.module;
 
 import android.content.ComponentName;
 import android.content.Intent;
+import android.content.Context;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.BroadcastReceiver;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.content.ContextCompat;
@@ -31,6 +33,7 @@ import javax.annotation.Nullable;
  */
 public class MusicModule extends ReactContextBaseJavaModule implements ServiceConnection {
 
+    private MusicModule module;
     private MusicBinder binder;
     private MusicEvents eventHandler;
     private ArrayDeque<Runnable> initCallbacks = new ArrayDeque<>();
@@ -38,7 +41,16 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
 
     public MusicModule(ReactApplicationContext reactContext) {
         super(reactContext);
+        module = this;
     }
+
+    private BroadcastReceiver onServiceStartReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Intent sIntent = new Intent(context, MusicService.class);
+            context.bindService(sIntent, module, 0);
+        }
+    };
 
     @Override
     public String getName() {
@@ -52,18 +64,20 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
 
         eventHandler = new MusicEvents(context);
         manager.registerReceiver(eventHandler, new IntentFilter(Utils.EVENT_INTENT));
+        manager.registerReceiver(onServiceStartReceiver, new IntentFilter(MusicService.ON_START));
     }
 
     @Override
     public void onCatalystInstanceDestroy() {
         ReactContext context = getReactApplicationContext();
+        LocalBroadcastManager manager = LocalBroadcastManager.getInstance(context);
 
         if(eventHandler != null) {
-            LocalBroadcastManager manager = LocalBroadcastManager.getInstance(context);
-
             manager.unregisterReceiver(eventHandler);
             eventHandler = null;
         }
+        
+        manager.unregisterReceiver(onServiceStartReceiver);
     }
 
     @Override
@@ -105,10 +119,7 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
         ReactApplicationContext context = getReactApplicationContext();
 
         // Binds the service to get a MediaWrapper instance
-        Intent intent = new Intent(context, MusicService.class);
-        ContextCompat.startForegroundService(context, intent);
-        intent.setAction(Utils.CONNECT_INTENT);
-        context.bindService(intent, this, 0);
+        LocalBroadcastManager.getInstance(context).sendBroadcast(new Intent(MusicService.START_SERVICE));
 
         connecting = true;
     }

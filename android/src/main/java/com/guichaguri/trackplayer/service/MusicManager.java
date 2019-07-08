@@ -1,5 +1,7 @@
 package com.guichaguri.trackplayer.service;
 
+import com.guichaguri.trackplayer.module.MusicModule;
+
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -30,6 +32,9 @@ import com.guichaguri.trackplayer.service.models.Track;
 import com.guichaguri.trackplayer.service.player.ExoPlayback;
 import com.guichaguri.trackplayer.service.player.LocalPlayback;
 
+import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
+
 import static com.google.android.exoplayer2.DefaultLoadControl.*;
 
 /**
@@ -57,6 +62,17 @@ public class MusicManager implements OnAudioFocusChangeListener {
     };
     private boolean receivingNoisyEvents = false;
 
+    private BroadcastReceiver onServiceStartReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Intent sIntent = new Intent(context, MusicService.class);
+            ContextCompat.startForegroundService(context, sIntent);
+            intent.setAction(Utils.CONNECT_INTENT);
+            service.startAndStopService();
+            LocalBroadcastManager.getInstance(context).sendBroadcast(new Intent(MusicService.ON_START));
+        }
+    };
+
     private boolean stopWithApp = false;
 
     @SuppressLint("InvalidWakeLockTag")
@@ -72,6 +88,8 @@ public class MusicManager implements OnAudioFocusChangeListener {
         WifiManager wifiManager = (WifiManager)service.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         wifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL, "track-player-wifi-lock");
         wifiLock.setReferenceCounted(false);
+
+        service.registerReceiver(onServiceStartReceiver, new IntentFilter(MusicService.START_SERVICE));
     }
 
     public ExoPlayback getPlayback() {
@@ -308,6 +326,9 @@ public class MusicManager implements OnAudioFocusChangeListener {
             service.unregisterReceiver(noisyReceiver);
             receivingNoisyEvents = false;
         }
+
+        
+        service.unregisterReceiver(onServiceStartReceiver);
 
         // Release the playback resources
         if(playback != null) playback.destroy();

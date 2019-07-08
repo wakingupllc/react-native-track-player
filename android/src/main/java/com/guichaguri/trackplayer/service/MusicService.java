@@ -26,6 +26,9 @@ import javax.annotation.Nullable;
  */
 public class MusicService extends HeadlessJsTaskService {
 
+    public final static String START_SERVICE = "music-service-on-start";
+    public final static String ON_START = "music-service-on-start";
+
     MusicManager manager;
     Handler handler;
 
@@ -56,7 +59,7 @@ public class MusicService extends HeadlessJsTaskService {
         }
     }
 
-    private void startAndStopService() {
+    public void startAndStopService() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Notification notification = Utils.createBlankSetupNotification(this);
             startForeground(1, notification);
@@ -83,7 +86,7 @@ public class MusicService extends HeadlessJsTaskService {
             serviceForeground = manager.getMetadata().getSession().isActive();
         }
 
-        if(!serviceForeground) {
+        if (!serviceForeground) {
             return;
         }
 
