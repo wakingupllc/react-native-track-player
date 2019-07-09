@@ -3,9 +3,11 @@ package com.guichaguri.trackplayer.service;
 import android.app.Activity;
 import android.app.Notification;
 import android.content.Intent;
+import android.util.Log;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
@@ -60,7 +62,7 @@ public class MusicService extends HeadlessJsTaskService {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Notification notification = Utils.createBlankSetupNotification(this);
             startForeground(1, notification);
-            stopForeground(true);
+            stopForeground(false);
         } else {
             startForeground(1, new Notification());
             stopSelf();
@@ -108,10 +110,9 @@ public class MusicService extends HeadlessJsTaskService {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.d(Utils.LOG, "onStartCommand");
+        onStartForeground();
         if(intent != null && Intent.ACTION_MEDIA_BUTTON.equals(intent.getAction())) {
-            // Check if the app is on background, then starts a foreground service and then ends it right after
-            onStartForeground();
-            
             if(manager != null) {
                 MediaButtonReceiver.handleIntent(manager.getMetadata().getSession(), intent);
             }

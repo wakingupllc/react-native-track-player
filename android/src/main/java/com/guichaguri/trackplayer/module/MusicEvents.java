@@ -1,5 +1,6 @@
 package com.guichaguri.trackplayer.module;
 
+import android.util.Log;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -8,6 +9,8 @@ import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter;
+
+import com.guichaguri.trackplayer.service.Utils;
 
 /**
  * @author Guichaguri
@@ -48,6 +51,7 @@ public class MusicEvents extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        Log.d(Utils.LOG, "onReceive");
         String event = intent.getStringExtra("event");
         Bundle data = intent.getBundleExtra("data");
 
@@ -55,5 +59,4 @@ public class MusicEvents extends BroadcastReceiver {
 
         reactContext.getJSModule(RCTDeviceEventEmitter.class).emit(event, map);
     }
-
 }
