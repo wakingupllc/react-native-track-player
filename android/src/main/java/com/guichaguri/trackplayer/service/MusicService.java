@@ -13,6 +13,7 @@ import android.os.IBinder;
 import javax.annotation.Nullable;
 
 import com.facebook.react.HeadlessJsTaskService;
+import com.guichaguri.trackplayer.service.metadata.MetadataManager;
 
 /**
  * @author Guichaguri
@@ -57,14 +58,19 @@ public class MusicService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(Utils.LOG, "Service command (" + (intent != null ? intent.getAction() : "Unknown") + ")");
+        Log.d(Utils.LOG, "onStartCommand");
 
-        if (intent == null) {
-            Log.d(Utils.TAG, "The service is probably restarting. The player is being safely destroyed");
-            stopForeground(true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && manager == null) {
+            Notification notification = Utils.createBlankSetupNotification(this);
+            startForeground(1, notification);
+        } else {
+            MetadataManager metadata = manager.getMetadata();
+            metadata.setActive(true);
+            if (intent != null ) {
+                metadata.handleIntent(intent);
+            }
         }
-
-        return intent == null ? START_NOT_STICKY : START_STICKY;
+        return START_NOT_STICKY;
     }
 
     @Override

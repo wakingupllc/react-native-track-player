@@ -36,13 +36,6 @@ public class MusicEventService extends HeadlessJsTaskService {
         WritableMap map = bundle != null ? Arguments.fromBundle(bundle) : Arguments.createMap();
         map.putString("event", event);
 
-        // ReactInstanceManager reactInstanceManager = getReactNativeHost().getReactInstanceManager();
-        // ReactContext reactContext = reactInstanceManager.getCurrentReactContext();
-
-        // if (reactContext != null ) {
-        //     reactContext.getJSModule(RCTDeviceEventEmitter.class).emit(event, map);
-        // }
-
         return new HeadlessJsTaskConfig("TrackPlayer", map, 0, true);
     }
 
