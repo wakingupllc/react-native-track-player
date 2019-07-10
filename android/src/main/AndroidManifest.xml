@@ -14,6 +14,10 @@
             </intent-filter>
         </service>
 
+        <service
+            android:name="com.rnheartbeat.MusicEventService">
+        </service>
+
         <!-- A receiver that will receive media buttons. Required on pre-lollipop devices -->
         <receiver android:name="android.support.v4.media.session.MediaButtonReceiver">
             <intent-filter>
