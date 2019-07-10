@@ -10,6 +10,7 @@ import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.media.RatingCompat;
@@ -191,11 +192,15 @@ public class Utils {
     }
 
     public static void emit(Context context, String event, Bundle data) {
-        Intent intent = new Intent(Utils.EVENT_INTENT);
+        Intent intent = new Intent(context, MusicEventService.class);
 
         intent.putExtra("event", event);
         if(data != null) intent.putExtra("data", data);
 
-        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        try {
+            context.startService(intent);
+        } catch (Exception e) {
+            Log.d(Utils.LOG, "Failed to start headless service...");
+        }
     }
 }

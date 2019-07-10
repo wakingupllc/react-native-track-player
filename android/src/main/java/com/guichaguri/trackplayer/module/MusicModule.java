@@ -35,7 +35,6 @@ import javax.annotation.Nullable;
 public class MusicModule extends ReactContextBaseJavaModule implements ServiceConnection {
 
     private MusicBinder binder;
-    private MusicEvents eventHandler;
     private ArrayDeque<Runnable> initCallbacks = new ArrayDeque<>();
     private boolean connecting = false;
 
@@ -52,21 +51,6 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
     public void initialize() {
         ReactContext context = getReactApplicationContext();
         LocalBroadcastManager manager = LocalBroadcastManager.getInstance(context);
-
-        eventHandler = new MusicEvents(context);
-        manager.registerReceiver(eventHandler, new IntentFilter(Utils.EVENT_INTENT));
-    }
-
-    @Override
-    public void onCatalystInstanceDestroy() {
-        ReactContext context = getReactApplicationContext();
-
-        if(eventHandler != null) {
-            LocalBroadcastManager manager = LocalBroadcastManager.getInstance(context);
-
-            manager.unregisterReceiver(eventHandler);
-            eventHandler = null;
-        }
     }
 
     @Override
@@ -110,14 +94,8 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
         // Binds the service to get a MediaWrapper instance
         Intent intent = new Intent(context, MusicService.class);
         intent.setAction(Utils.CONNECT_INTENT);
-        ServiceConnection serviceConnection = this;
-        Thread t = new Thread(){
-            public void run() {
-                ContextCompat.startForegroundService(context, intent);
-                context.bindService(intent, serviceConnection, 0);
-            }
-        };
-        t.start();
+        context.startService(intent);
+        context.bindService(intent, this, 0);
 
         connecting = true;
     }

@@ -15,7 +15,7 @@ import com.guichaguri.trackplayer.service.Utils;
 /**
  * @author Guichaguri
  */
-public class MusicEvents extends BroadcastReceiver {
+public final class MusicEvents {
 
     // Media Control Events
     public static final String BUTTON_PLAY = "remote-play";
@@ -42,21 +42,4 @@ public class MusicEvents extends BroadcastReceiver {
     // Service Events
     public static final String SERVICE_CONNECTED = "service-connected";
     public static final String SERVICE_DISCONNECTED = "service-disconnected";
-
-    private final ReactContext reactContext;
-
-    public MusicEvents(ReactContext reactContext) {
-        this.reactContext = reactContext;
-    }
-
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        Log.d(Utils.LOG, "onReceive");
-        String event = intent.getStringExtra("event");
-        Bundle data = intent.getBundleExtra("data");
-
-        WritableMap map = data != null ? Arguments.fromBundle(data) : null;
-
-        reactContext.getJSModule(RCTDeviceEventEmitter.class).emit(event, map);
-    }
 }

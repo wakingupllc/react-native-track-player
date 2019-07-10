@@ -3,7 +3,7 @@ package com.guichaguri.trackplayer.service;
 import android.app.Activity;
 import android.app.Notification;
 import android.app.Service;
-import android.app.Context;
+import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 import android.os.Build;
@@ -21,18 +21,6 @@ public class MusicService extends Service {
 
     MusicManager manager;
     Handler handler;
-
-    private Runnable startHeadlessService = new Runnable() {
-        @Override
-        public void run() {
-            Context context = getApplicationContext();
-            Intent intent = new Intent(context, MusicEventService.class);
-            context.startService(intent);
-            HeadlessJsTaskService.acquireWakeLockNow(context);
-            handler.post(this);
-        }
-    };
-
 
     public void emit(String event, Bundle data) {
         Utils.emit(this, event, data);
@@ -69,26 +57,19 @@ public class MusicService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        this.handler.post(this.startHeadlessService);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Notification notification = Utils.createBlankSetupNotification(this);
-            startForeground(1, notification);
+        Log.d(Utils.LOG, "Service command (" + (intent != null ? intent.getAction() : "Unknown") + ")");
+
+        if (intent == null) {
+            Log.d(Utils.TAG, "The service is probably restarting. The player is being safely destroyed");
+            stopForeground(true);
         }
-        return START_NOT_STICKY;
+
+        return intent == null ? START_NOT_STICKY : START_STICKY;
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         destroy();
-    }
-
-    @Override
-    public void onTaskRemoved(Intent rootIntent) {
-        super.onTaskRemoved(rootIntent);
-
-        if (manager == null || manager.shouldStopWithApp()) {
-            stopSelf();
-        }
     }
 }
