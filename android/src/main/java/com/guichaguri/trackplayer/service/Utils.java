@@ -10,8 +10,8 @@ import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.media.RatingCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import com.facebook.react.bridge.Promise;
@@ -24,12 +24,10 @@ import com.guichaguri.trackplayer.R;
  */
 public class Utils {
 
-    public static final String EVENT_INTENT = "com.guichaguri.trackplayer.event";
     public static final String CONNECT_INTENT = "com.guichaguri.trackplayer.connect";
     public static final String NOTIFICATION_CHANNEL = "com.guichaguri.trackplayer";
     public static final String SETUP_NOTIFICATION_CHANNEL = "com.guichaguri.trackplayer-setup";
     public static final String LOG = "RNTrackPlayer";
-    public static final Object PLAYBACK_SERVICE_SETUP_LOCK = new Object();
 
     public static Runnable toRunnable(Promise promise) {
         return () -> promise.resolve(null);
@@ -191,11 +189,15 @@ public class Utils {
     }
 
     public static void emit(Context context, String event, Bundle data) {
-        Intent intent = new Intent(Utils.EVENT_INTENT);
+        Intent intent = new Intent(context, MusicEventService.class);
 
         intent.putExtra("event", event);
         if(data != null) intent.putExtra("data", data);
 
-        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        try {
+            context.startService(intent);
+        } catch (Exception e) {
+            Log.d(Utils.LOG, "Failed to start headless service...");
+        }
     }
 }

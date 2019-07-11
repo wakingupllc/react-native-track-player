@@ -14,6 +14,11 @@
             </intent-filter>
         </service>
 
+        <!-- The service for the headless tasks in which events can be received by the JS side -->
+        <service
+            android:name=".service.MusicEventService">
+        </service>
+
         <!-- A receiver that will receive media buttons. Required on pre-lollipop devices -->
         <receiver android:name="android.support.v4.media.session.MediaButtonReceiver">
             <intent-filter>

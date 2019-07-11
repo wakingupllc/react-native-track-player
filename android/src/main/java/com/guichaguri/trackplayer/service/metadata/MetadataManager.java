@@ -319,6 +319,11 @@ public class MetadataManager {
         return icon;
     }
 
+    public void handleIntent(Intent intent) {
+        // Handle the media button
+        MediaButtonReceiver.handleIntent(session, intent);
+    }
+
     private Action createAction(List<Integer> caps, long action, String title, int icon) {
         if(!caps.contains((int)action)) return null;
 

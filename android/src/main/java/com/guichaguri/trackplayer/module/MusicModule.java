@@ -1,6 +1,7 @@
 package com.guichaguri.trackplayer.module;
 
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -24,6 +25,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.lang.Thread;
+
 import javax.annotation.Nullable;
 
 /**
@@ -32,7 +35,6 @@ import javax.annotation.Nullable;
 public class MusicModule extends ReactContextBaseJavaModule implements ServiceConnection {
 
     private MusicBinder binder;
-    private MusicEvents eventHandler;
     private ArrayDeque<Runnable> initCallbacks = new ArrayDeque<>();
     private boolean connecting = false;
 
@@ -43,27 +45,6 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
     @Override
     public String getName() {
         return "TrackPlayerModule";
-    }
-
-    @Override
-    public void initialize() {
-        ReactContext context = getReactApplicationContext();
-        LocalBroadcastManager manager = LocalBroadcastManager.getInstance(context);
-
-        eventHandler = new MusicEvents(context);
-        manager.registerReceiver(eventHandler, new IntentFilter(Utils.EVENT_INTENT));
-    }
-
-    @Override
-    public void onCatalystInstanceDestroy() {
-        ReactContext context = getReactApplicationContext();
-
-        if(eventHandler != null) {
-            LocalBroadcastManager manager = LocalBroadcastManager.getInstance(context);
-
-            manager.unregisterReceiver(eventHandler);
-            eventHandler = null;
-        }
     }
 
     @Override
@@ -89,6 +70,13 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
         Utils.emit(context, MusicEvents.SERVICE_DISCONNECTED, null);
     }
 
+    @Override
+    public void onCatalystInstanceDestroy() {
+        if  (binder != null || connecting) {
+            getReactApplicationContext().unbindService(this);
+        }
+    }
+
     /**
      * Waits for a connection to the service and/or runs the {@link Runnable} in the player thread
      */
@@ -106,9 +94,15 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
 
         // Binds the service to get a MediaWrapper instance
         Intent intent = new Intent(context, MusicService.class);
-        ContextCompat.startForegroundService(context, intent);
         intent.setAction(Utils.CONNECT_INTENT);
-        context.bindService(intent, this, 0);
+        ServiceConnection serviceConnection = this;
+        Thread t = new Thread(){
+            public void run() {
+                ContextCompat.startForegroundService(context, intent);
+                context.bindService(intent, serviceConnection, 0);
+            }
+        };
+        t.start();
 
         connecting = true;
     }
