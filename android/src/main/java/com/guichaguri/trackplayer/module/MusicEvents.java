@@ -1,17 +1,5 @@
 package com.guichaguri.trackplayer.module;
 
-import android.util.Log;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.os.Bundle;
-import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.ReactContext;
-import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter;
-
-import com.guichaguri.trackplayer.service.Utils;
-
 /**
  * @author Guichaguri
  */

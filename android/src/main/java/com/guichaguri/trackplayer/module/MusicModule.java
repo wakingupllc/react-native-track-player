@@ -48,12 +48,6 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
     }
 
     @Override
-    public void initialize() {
-        ReactContext context = getReactApplicationContext();
-        LocalBroadcastManager manager = LocalBroadcastManager.getInstance(context);
-    }
-
-    @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
         binder = (MusicBinder)service;
         connecting = false;
@@ -74,6 +68,13 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
 
         ReactContext context = getReactApplicationContext();
         Utils.emit(context, MusicEvents.SERVICE_DISCONNECTED, null);
+    }
+
+    @Override
+    public void onCatalystInstanceDestroy() {
+        if  (binder != null || connecting) {
+            getReactApplicationContext().unbindService(this);
+        }
     }
 
     /**

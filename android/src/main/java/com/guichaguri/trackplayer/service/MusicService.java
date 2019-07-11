@@ -1,9 +1,7 @@
 package com.guichaguri.trackplayer.service;
 
-import android.app.Activity;
 import android.app.Notification;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 import android.os.Build;
@@ -12,7 +10,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import javax.annotation.Nullable;
 
-import com.facebook.react.HeadlessJsTaskService;
 import com.guichaguri.trackplayer.service.metadata.MetadataManager;
 
 /**
@@ -77,5 +74,13 @@ public class MusicService extends Service {
     public void onDestroy() {
         super.onDestroy();
         destroy();
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        super.onTaskRemoved(rootIntent);
+        if (manager == null || manager.shouldStopWithApp()) {
+            stopSelf();
+        }
     }
 }
