@@ -18,6 +18,7 @@ android/captures/
 android/local.properties
 gradle.properties
 android/*.iml
+android/bin/**/*.class
 
 # Windows
 
@@ -52,3 +53,16 @@ xcuserdata/
 *.dSYM
 example/ios/Pods
 /ios/RNTrackPlayer.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+
+
+\.ionide/symbolCache\.db
+
+android/\.classpath
+
+android/\.project
+
+android/\.settings/org\.eclipse\.buildship\.core\.prefs
+
+example/android/\.project
+
+example/android/\.settings/org\.eclipse\.buildship\.core\.prefs

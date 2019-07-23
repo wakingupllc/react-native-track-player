@@ -64,7 +64,7 @@ public abstract class ExoPlayback<T extends Player> implements EventListener {
 
         queue.set(index, track);
 
-        if(currentIndex == index)
+        if (currentIndex == index)
             manager.getMetadata().updateMetadata(track);
     }
 
@@ -74,13 +74,13 @@ public abstract class ExoPlayback<T extends Player> implements EventListener {
     }
 
     public void skip(String id, Promise promise) {
-        if(id == null || id.isEmpty()) {
+        if (id == null || id.isEmpty()) {
             promise.reject("invalid_id", "The ID can't be null or empty");
             return;
         }
 
-        for(int i = 0; i < queue.size(); i++) {
-            if(id.equals(queue.get(i).id)) {
+        for (int i = 0; i < queue.size(); i++) {
+            if (id.equals(queue.get(i).id)) {
                 lastKnownWindow = player.getCurrentWindowIndex();
                 lastKnownPosition = player.getCurrentPosition();
 
@@ -96,7 +96,7 @@ public abstract class ExoPlayback<T extends Player> implements EventListener {
     public void skipToPrevious(Promise promise) {
         int prev = player.getPreviousWindowIndex();
 
-        if(prev == C.INDEX_UNSET) {
+        if (prev == C.INDEX_UNSET) {
             promise.reject("no_previous_track", "There is no previous track");
             return;
         }
@@ -111,7 +111,7 @@ public abstract class ExoPlayback<T extends Player> implements EventListener {
     public void skipToNext(Promise promise) {
         int next = player.getNextWindowIndex();
 
-        if(next == C.INDEX_UNSET) {
+        if (next == C.INDEX_UNSET) {
             promise.reject("queue_exhausted", "There is no tracks left to play");
             return;
         }
@@ -137,7 +137,7 @@ public abstract class ExoPlayback<T extends Player> implements EventListener {
 
         player.stop(false);
         player.setPlayWhenReady(false);
-        player.seekTo(0,0);
+        player.seekTo(0, 0);
     }
 
     public void reset() {
@@ -184,15 +184,15 @@ public abstract class ExoPlayback<T extends Player> implements EventListener {
     }
 
     public int getState() {
-        switch(player.getPlaybackState()) {
-            case Player.STATE_BUFFERING:
-                return PlaybackStateCompat.STATE_BUFFERING;
-            case Player.STATE_ENDED:
-                return PlaybackStateCompat.STATE_STOPPED;
-            case Player.STATE_IDLE:
-                return PlaybackStateCompat.STATE_NONE;
-            case Player.STATE_READY:
-                return player.getPlayWhenReady() ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED;
+        switch (player.getPlaybackState()) {
+        case Player.STATE_BUFFERING:
+            return PlaybackStateCompat.STATE_BUFFERING;
+        case Player.STATE_ENDED:
+            return PlaybackStateCompat.STATE_STOPPED;
+        case Player.STATE_IDLE:
+            return PlaybackStateCompat.STATE_NONE;
+        case Player.STATE_READY:
+            return player.getPlayWhenReady() ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED;
         }
         return PlaybackStateCompat.STATE_NONE;
     }
@@ -205,7 +205,8 @@ public abstract class ExoPlayback<T extends Player> implements EventListener {
     public void onTimelineChanged(Timeline timeline, Object manifest, int reason) {
         Log.d(Utils.LOG, "onTimelineChanged: " + reason);
 
-        if((reason == Player.TIMELINE_CHANGE_REASON_PREPARED || reason == Player.TIMELINE_CHANGE_REASON_DYNAMIC) && !timeline.isEmpty()) {
+        if ((reason == Player.TIMELINE_CHANGE_REASON_PREPARED || reason == Player.TIMELINE_CHANGE_REASON_DYNAMIC)
+                && !timeline.isEmpty()) {
             onPositionDiscontinuity(Player.DISCONTINUITY_REASON_INTERNAL);
         }
     }
@@ -214,16 +215,18 @@ public abstract class ExoPlayback<T extends Player> implements EventListener {
     public void onPositionDiscontinuity(int reason) {
         Log.d(Utils.LOG, "onPositionDiscontinuity: " + reason);
 
-        if(lastKnownWindow != player.getCurrentWindowIndex()) {
+        if (lastKnownWindow != player.getCurrentWindowIndex()) {
             Track previous = lastKnownWindow == C.INDEX_UNSET ? null : queue.get(lastKnownWindow);
             Track next = getCurrentTrack();
 
             // Track changed because it ended
             // We'll use its duration instead of the last known position
             if (reason == Player.DISCONTINUITY_REASON_PERIOD_TRANSITION && lastKnownWindow != C.INDEX_UNSET) {
-                if (lastKnownWindow >= player.getCurrentTimeline().getWindowCount()) return;
+                if (lastKnownWindow >= player.getCurrentTimeline().getWindowCount())
+                    return;
                 long duration = player.getCurrentTimeline().getWindow(lastKnownWindow, new Window()).getDurationMs();
-                if(duration != C.TIME_UNSET) lastKnownPosition = duration;
+                if (duration != C.TIME_UNSET)
+                    lastKnownPosition = duration;
             }
 
             manager.onTrackUpdate(previous, lastKnownPosition, next);
@@ -247,20 +250,34 @@ public abstract class ExoPlayback<T extends Player> implements EventListener {
     public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
         int state = getState();
 
-        if(state != previousState) {
-            if(Utils.isPlaying(state) && !Utils.isPlaying(previousState)) {
+        if (state != previousState) {
+            if (Utils.isPlaying(state) && !Utils.isPlaying(previousState)) {
                 manager.onPlay();
-            } else if(Utils.isPaused(state) && !Utils.isPaused(previousState)) {
+            } else if (Utils.isPaused(state) && !Utils.isPaused(previousState)) {
                 manager.onPause();
-            } else if(Utils.isStopped(state) && !Utils.isStopped(previousState)) {
+            } else if (Utils.isStopped(state) && !Utils.isStopped(previousState)) {
                 manager.onStop();
             }
 
             manager.onStateChange(state);
             previousState = state;
 
-            if(state == PlaybackStateCompat.STATE_STOPPED) {
-                manager.onEnd(getCurrentTrack(), getPosition());
+            if (state == PlaybackStateCompat.STATE_STOPPED) {
+                int next = player.getNextWindowIndex();
+                if (next == C.INDEX_UNSET) {
+                    manager.onEnd(getCurrentTrack(), getPosition());
+                    return;
+                }
+
+                Track previous = queue.get(lastKnownWindow);
+
+                lastKnownWindow = player.getCurrentWindowIndex();
+                lastKnownPosition = player.getCurrentPosition();
+
+                player.seekToDefaultPosition(next);
+
+                Track nextTrack = getCurrentTrack();
+                manager.onTrackUpdate(previous, lastKnownPosition, nextTrack);
             }
         }
     }
@@ -279,10 +296,10 @@ public abstract class ExoPlayback<T extends Player> implements EventListener {
     public void onPlayerError(ExoPlaybackException error) {
         String code;
 
-        if(error.type == ExoPlaybackException.TYPE_SOURCE) {
+        if (error.type == ExoPlaybackException.TYPE_SOURCE) {
             code = "playback-source";
-        } else if(error.type == ExoPlaybackException.TYPE_RENDERER) {
-            code = "playback-renderer";
+        } else if (error.type == ExoPlaybackException.TYPE_RENDERER) {
+                code = "playback-renderer";
         } else {
             code = "playback"; // Other unexpected errors related to the playback
         }
