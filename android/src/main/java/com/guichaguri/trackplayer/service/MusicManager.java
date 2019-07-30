@@ -251,6 +251,25 @@ public class MusicManager implements OnAudioFocusChangeListener {
         service.emit(MusicEvents.BUTTON_DUCK, bundle);
     }
 
+    public void muteAudio() {
+        AudioManager mAlramMAnager = (AudioManager) aActivity.getSystemService(aContext.AUDIO_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            mAlramMAnager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0);
+        } else {
+            mAlramMAnager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+        }
+    }
+
+    public void unmuteAudio() {
+        AudioManager mAlramMAnager = (AudioManager) aActivity.getSystemService(aContext.AUDIO_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            mAlramMAnager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_UNMUTE, 0);
+        } else {
+            mAlramMAnager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+        }
+    }
+
+
     private void requestFocus() {
         if(hasAudioFocus) return;
         Log.d(Utils.LOG, "Requesting audio focus...");
