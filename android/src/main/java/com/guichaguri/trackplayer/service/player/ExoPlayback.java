@@ -229,7 +229,7 @@ public abstract class ExoPlayback<T extends Player> implements EventListener {
                     lastKnownPosition = duration;
             }
 
-            manager.onTrackUpdate(previous, lastKnownPosition, next);
+            manager.onTrackUpdate(previous, lastKnownPosition, next, false);
         }
 
         lastKnownWindow = player.getCurrentWindowIndex();
@@ -264,8 +264,9 @@ public abstract class ExoPlayback<T extends Player> implements EventListener {
 
             if (state == PlaybackStateCompat.STATE_STOPPED) {
                 int next = player.getNextWindowIndex();
+                Boolean isTrackFinished = playbackState == Player.STATE_ENDED;
                 if (next == C.INDEX_UNSET) {
-                    manager.onEnd(getCurrentTrack(), getPosition(), playbackState == Player.STATE_ENDED);
+                    manager.onEnd(getCurrentTrack(), getPosition(), isTrackFinished);
                     return;
                 }
 
@@ -277,7 +278,7 @@ public abstract class ExoPlayback<T extends Player> implements EventListener {
                 player.seekToDefaultPosition(next);
 
                 Track nextTrack = getCurrentTrack();
-                manager.onTrackUpdate(previous, lastKnownPosition, nextTrack);
+                manager.onTrackUpdate(previous, lastKnownPosition, nextTrack, isTrackFinished);
             }
         }
     }

@@ -187,7 +187,7 @@ public class MusicManager implements OnAudioFocusChangeListener {
         metadata.updatePlayback(playback);
     }
 
-    public void onTrackUpdate(Track previous, long prevPos, Track next) {
+    public void onTrackUpdate(Track previous, long prevPos, Track next, Boolean isTrackFinished) {
         Log.d(Utils.LOG, "onTrackUpdate");
 
         if(next != null) metadata.updateMetadata(next);
@@ -196,6 +196,7 @@ public class MusicManager implements OnAudioFocusChangeListener {
         bundle.putString("track", previous != null ? previous.id : null);
         bundle.putDouble("position", Utils.toSeconds(prevPos));
         bundle.putString("nextTrack", next != null ? next.id : null);
+        bundle.putBoolean("isTrackFinished", isTrackFinished);
         service.emit(MusicEvents.PLAYBACK_TRACK_CHANGED, bundle);
     }
 
@@ -209,7 +210,7 @@ public class MusicManager implements OnAudioFocusChangeListener {
         Bundle bundle = new Bundle();
         bundle.putString("track", previous != null ? previous.id : null);
         bundle.putDouble("position", Utils.toSeconds(prevPos));
-        bundle.putDouble("isTrackFinished", isTrackFinished);
+        bundle.putBoolean("isTrackFinished", isTrackFinished);
         service.emit(MusicEvents.PLAYBACK_QUEUE_ENDED, bundle);
     }
 
@@ -252,22 +253,24 @@ public class MusicManager implements OnAudioFocusChangeListener {
         service.emit(MusicEvents.BUTTON_DUCK, bundle);
     }
 
-    public void muteAudio() {
-        AudioManager mAlramMAnager = (AudioManager) aActivity.getSystemService(aContext.AUDIO_SERVICE);
+    public Boolean muteAudio() {
+        AudioManager mAudioManager = (AudioManager) this.service.getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            mAlramMAnager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0);
+            mAudioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0);
         } else {
-            mAlramMAnager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+            mAudioManager.setStreamMute(AudioManager.STREAM_MUSIC, true);
         }
+        return true;
     }
 
-    public void unmuteAudio() {
-        AudioManager mAlramMAnager = (AudioManager) aActivity.getSystemService(aContext.AUDIO_SERVICE);
+    public Boolean unmuteAudio() {
+        AudioManager mAudioManager = (AudioManager) this.service.getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            mAlramMAnager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_UNMUTE, 0);
+            mAudioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_UNMUTE, 0);
         } else {
-            mAlramMAnager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+            mAudioManager.setStreamMute(AudioManager.STREAM_MUSIC, false);
         }
+        return true;
     }
 
 

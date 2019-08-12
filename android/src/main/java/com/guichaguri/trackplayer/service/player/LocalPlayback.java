@@ -166,7 +166,7 @@ public class LocalPlayback extends ExoPlayback<SimpleExoPlayer> {
         super.reset();
         resetQueue();
 
-        manager.onTrackUpdate(track, position, null);
+        manager.onTrackUpdate(track, position, null, false);
     }
 
     @Override
