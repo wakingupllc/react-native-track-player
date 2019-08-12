@@ -203,12 +203,13 @@ public class MusicManager implements OnAudioFocusChangeListener {
         metadata.removeNotifications();
     }
 
-    public void onEnd(Track previous, long prevPos) {
+    public void onEnd(Track previous, long prevPos, Boolean isTrackFinished) {
         Log.d(Utils.LOG, "onEnd");
 
         Bundle bundle = new Bundle();
         bundle.putString("track", previous != null ? previous.id : null);
         bundle.putDouble("position", Utils.toSeconds(prevPos));
+        bundle.putDouble("isTrackFinished", isTrackFinished);
         service.emit(MusicEvents.PLAYBACK_QUEUE_ENDED, bundle);
     }
 
