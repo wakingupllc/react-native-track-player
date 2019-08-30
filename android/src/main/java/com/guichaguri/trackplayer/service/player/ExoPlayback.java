@@ -227,9 +227,11 @@ public abstract class ExoPlayback<T extends Player> implements EventListener {
                 long duration = player.getCurrentTimeline().getWindow(lastKnownWindow, new Window()).getDurationMs();
                 if (duration != C.TIME_UNSET)
                     lastKnownPosition = duration;
-            }
 
-            manager.onTrackUpdate(previous, lastKnownPosition, next, false);
+                manager.onTrackUpdate(previous, lastKnownPosition, next, true);
+            } else {
+                manager.onTrackUpdate(previous, lastKnownPosition, next, false);
+            }
         }
 
         lastKnownWindow = player.getCurrentWindowIndex();
@@ -273,7 +275,7 @@ public abstract class ExoPlayback<T extends Player> implements EventListener {
                 player.seekToDefaultPosition(next);
 
                 Track nextTrack = getCurrentTrack();
-                manager.onTrackUpdate(previous, lastKnownPosition, nextTrack, isTrackFinished);
+                manager.onTrackUpdate(previous, lastKnownPosition, nextTrack, true);
             }
 
             manager.onStateChange(state);
