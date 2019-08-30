@@ -256,16 +256,11 @@ public abstract class ExoPlayback<T extends Player> implements EventListener {
             } else if (Utils.isPaused(state) && !Utils.isPaused(previousState)) {
                 manager.onPause();
             } else if (Utils.isStopped(state) && !Utils.isStopped(previousState)) {
-                manager.onStop();
-            }
-
-            manager.onStateChange(state);
-            previousState = state;
-
-            if (state == PlaybackStateCompat.STATE_STOPPED) {
                 int next = player.getNextWindowIndex();
+                Boolean isQueueFinished = next == C.INDEX_UNSET;
                 Boolean isTrackFinished = playbackState == Player.STATE_ENDED;
-                if (next == C.INDEX_UNSET) {
+                if (isQueueFinished) {
+                    manager.onStop();
                     manager.onEnd(getCurrentTrack(), getPosition(), isTrackFinished);
                     return;
                 }
@@ -280,6 +275,9 @@ public abstract class ExoPlayback<T extends Player> implements EventListener {
                 Track nextTrack = getCurrentTrack();
                 manager.onTrackUpdate(previous, lastKnownPosition, nextTrack, isTrackFinished);
             }
+
+            manager.onStateChange(state);
+            previousState = state;
         }
     }
 
