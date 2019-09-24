@@ -31,6 +31,8 @@ import com.guichaguri.trackplayer.service.player.ExoPlayback;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.util.Log;
+
 /**
  * @author Guichaguri
  */
@@ -65,8 +67,7 @@ public class MetadataManager {
         this.builder = new NotificationCompat.Builder(service, Utils.NOTIFICATION_CHANNEL);
         this.session = new MediaSessionCompat(service, "TrackPlayer", null, null);
 
-        session.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS |
-                MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
+        session.setFlags(MediaSessionCompat.FLAG_HANDLES_QUEUE_COMMANDS);
         session.setCallback(new ButtonEvents(service, manager));
 
         Context context = service.getApplicationContext();
@@ -194,10 +195,13 @@ public class MetadataManager {
         MediaMetadataCompat.Builder metadata = track.toMediaMetadata();
 
         RequestManager rm = Glide.with(service.getApplicationContext());
-        if(artworkTarget != null) rm.clear(artworkTarget);
+        if(artworkTarget != null) {
+            rm.clear(artworkTarget);
+        }
 
         if(track.artwork != null) {
-            artworkTarget = rm.asBitmap()
+            try {
+                artworkTarget = rm.asBitmap()
                     .load(track.artwork)
                     .into(new SimpleTarget<Bitmap>() {
                         @Override
@@ -210,6 +214,10 @@ public class MetadataManager {
                             artworkTarget = null;
                         }
                     });
+            } catch(Exception ex) {
+                // This shouldn't block us from continuing
+                Log.e(Utils.LOG, "An error occurred while loading the artwork", ex);
+            }
         }
 
         builder.setContentTitle(track.title);
