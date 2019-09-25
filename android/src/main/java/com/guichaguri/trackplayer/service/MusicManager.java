@@ -224,6 +224,16 @@ public class MusicManager implements OnAudioFocusChangeListener {
         service.emit(MusicEvents.PLAYBACK_ERROR, bundle);
     }
 
+    public void onProgress(long position, long bufferedPosition, long duration) {
+        Log.d(Utils.LOG, "onProgress");
+
+        Bundle bundle = new Bundle();
+        bundle.putDouble("position", Utils.toSeconds(position));
+        bundle.putDouble("bufferedPosition", Utils.toSeconds(bufferedPosition));
+        bundle.putDouble("duration", Utils.toSeconds(duration));
+        service.emit(MusicEvents.PLAYBACK_PROGRESS, bundle);
+    }
+
     @Override
     public void onAudioFocusChange(int focus) {
         Log.d(Utils.LOG, "onDuck");

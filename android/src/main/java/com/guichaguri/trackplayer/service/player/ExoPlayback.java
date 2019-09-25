@@ -1,5 +1,7 @@
 package com.guichaguri.trackplayer.service.player;
 
+import android.os.Handler;
+import android.os.Message;
 import android.content.Context;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
@@ -26,6 +28,10 @@ import java.util.List;
  */
 public abstract class ExoPlayback<T extends Player> implements EventListener {
 
+    private static final int SHOW_PROGRESS = 1;
+
+    private float mProgressUpdateInterval = 1000.0f;
+
     protected final Context context;
     protected final MusicManager manager;
     protected final T player;
@@ -36,6 +42,25 @@ public abstract class ExoPlayback<T extends Player> implements EventListener {
     protected int lastKnownWindow = C.INDEX_UNSET;
     protected long lastKnownPosition = C.POSITION_UNSET;
     protected int previousState = PlaybackStateCompat.STATE_NONE;
+
+    private final Handler progressHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            if(msg.what != SHOW_PROGRESS) {
+                return;
+            }
+
+            if (player != null && Utils.isReady(player.getPlaybackState()) && player.getPlayWhenReady()) {
+                long pos = player.getCurrentPosition();
+                long bufferedDuration = player.getBufferedPercentage() * player.getDuration() / 100;
+                manager.onProgress(pos, bufferedDuration, player.getDuration());
+
+                // Send the message again
+                msg = obtainMessage(SHOW_PROGRESS);
+                sendMessageDelayed(msg, Math.round(mProgressUpdateInterval));
+            }
+        }
+    };
 
     public ExoPlayback(Context context, MusicManager manager, T player) {
         this.context = context;
@@ -198,7 +223,10 @@ public abstract class ExoPlayback<T extends Player> implements EventListener {
     }
 
     public void destroy() {
-        player.release();
+        if (player != null) {
+            player.release();
+        }
+        progressHandler.removeMessages(SHOW_PROGRESS);
     }
 
     @Override
@@ -253,11 +281,15 @@ public abstract class ExoPlayback<T extends Player> implements EventListener {
         int state = getState();
 
         if (state != previousState) {
-            if (Utils.isPlaying(state) && !Utils.isPlaying(previousState)) {
+            if (Utils.isReady(state)) {
+                startProgressHandler();
+            }
+
+            if (Utils.isPlaying(state)) {
                 manager.onPlay();
-            } else if (Utils.isPaused(state) && !Utils.isPaused(previousState)) {
+            } else if (Utils.isPaused(state)) {
                 manager.onPause();
-            } else if (Utils.isStopped(state) && !Utils.isStopped(previousState)) {
+            } else if (Utils.isStopped(state)) {
                 int next = player.getNextWindowIndex();
                 Boolean isQueueFinished = next == C.INDEX_UNSET;
                 Boolean isTrackFinished = playbackState == Player.STATE_ENDED;
@@ -281,6 +313,10 @@ public abstract class ExoPlayback<T extends Player> implements EventListener {
             manager.onStateChange(state);
             previousState = state;
         }
+    }
+
+    private void startProgressHandler() {
+        progressHandler.sendEmptyMessage(SHOW_PROGRESS);
     }
 
     @Override
