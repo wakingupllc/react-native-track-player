@@ -18,6 +18,7 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.views.imagehelper.ResourceDrawableIdHelper;
 import com.google.android.exoplayer2.upstream.RawResourceDataSource;
 import com.guichaguri.trackplayer.R;
+import com.facebook.react.HeadlessJsTaskService;
 
 /**
  * @author Guichaguri
@@ -200,6 +201,7 @@ public class Utils {
 
         try {
             context.startService(intent);
+            HeadlessJsTaskService.acquireWakeLockNow(context);
         } catch (Exception e) {
             Log.d(Utils.LOG, "Failed to start headless service...");
         }
