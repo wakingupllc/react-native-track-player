@@ -178,6 +178,14 @@ public class MusicManager implements OnAudioFocusChangeListener {
         metadata.setActive(false);
     }
 
+    public void onBuffering(boolean isBuffering) {
+        Log.d(Utils.LOG, "onStateChange");
+
+        Bundle bundle = new Bundle();
+        bundle.putBoolean("buffering", isBuffering);
+        service.emit(MusicEvents.PLAYBACK_BUFFERING, bundle);
+    }
+
     public void onStateChange(int state) {
         Log.d(Utils.LOG, "onStateChange");
 

@@ -27,6 +27,7 @@ public final class MusicEvents {
     public static final String PLAYBACK_ERROR = "playback-error";
     public static final String PLAYBACK_UNBIND = "playback-unbind";
     public static final String PLAYBACK_PROGRESS = "playback-progress";
+    public static final String PLAYBACK_BUFFERING = "playback-buffering";
 
     // Service Events
     public static final String SERVICE_CONNECTED = "service-connected";

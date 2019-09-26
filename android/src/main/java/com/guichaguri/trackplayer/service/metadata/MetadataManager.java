@@ -234,7 +234,7 @@ public class MetadataManager {
      */
     public void updatePlayback(ExoPlayback playback) {
         int state = playback.getState();
-        boolean playing = Utils.isPlaying(state);
+        boolean isPlaying = playback.isPlaying();
         List<Integer> compact = new ArrayList<>();
         builder.mActions.clear();
 
@@ -243,7 +243,7 @@ public class MetadataManager {
         addAction(previousAction, PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS, compact);
         addAction(rewindAction, PlaybackStateCompat.ACTION_REWIND, compact);
 
-        if(playing) {
+        if(isPlaying) {
             addAction(pauseAction, PlaybackStateCompat.ACTION_PAUSE, compact);
         } else {
             addAction(playAction, PlaybackStateCompat.ACTION_PLAY, compact);
@@ -258,7 +258,7 @@ public class MetadataManager {
 
             MediaStyle style = new MediaStyle();
 
-            if(playing) {
+            if(isPlaying) {
                 style.setShowCancelButton(false);
             } else {
                 // Shows the cancel button on pre-lollipop versions due to a bug

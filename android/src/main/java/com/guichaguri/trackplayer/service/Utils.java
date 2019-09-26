@@ -117,22 +117,6 @@ public class Utils {
         }
     }
 
-    public static boolean isReady(int state) {
-        return state == PlaybackStateCompat.STATE_PLAYING || state == PlaybackStateCompat.STATE_PAUSED;
-    }
-
-    public static boolean isPlaying(int state) {
-        return state == PlaybackStateCompat.STATE_PLAYING || state == PlaybackStateCompat.STATE_BUFFERING;
-    }
-
-    public static boolean isPaused(int state) {
-        return state == PlaybackStateCompat.STATE_PAUSED;
-    }
-
-    public static boolean isStopped(int state) {
-        return state == PlaybackStateCompat.STATE_NONE || state == PlaybackStateCompat.STATE_STOPPED;
-    }
-
     public static RatingCompat getRating(Bundle data, String key, int ratingType) {
         if(!data.containsKey(key) || ratingType == RatingCompat.RATING_NONE) {
             return RatingCompat.newUnratedRating(ratingType);

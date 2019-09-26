@@ -50,7 +50,7 @@ public abstract class ExoPlayback<T extends Player> implements EventListener {
                 return;
             }
 
-            if (player != null && Utils.isReady(player.getPlaybackState()) && player.getPlayWhenReady()) {
+            if (isPlaying()) {
                 long pos = player.getCurrentPosition();
                 long bufferedDuration = player.getBufferedPercentage() * player.getDuration() / 100;
                 manager.onProgress(pos, bufferedDuration, player.getDuration());
@@ -83,6 +83,10 @@ public abstract class ExoPlayback<T extends Player> implements EventListener {
     public abstract void remove(List<Integer> indexes, Promise promise);
 
     public abstract void removeUpcomingTracks();
+
+    public boolean isPlaying() {
+        return player != null && player.getPlaybackState() == Player.STATE_READY && player.getPlayWhenReady();
+    }
 
     public void updateTrack(int index, Track track) {
         int currentIndex = player.getCurrentWindowIndex();
@@ -273,29 +277,38 @@ public abstract class ExoPlayback<T extends Player> implements EventListener {
 
     @Override
     public void onLoadingChanged(boolean isLoading) {
-        // Buffering updates
+        // Do nothing
     }
 
     @Override
     public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
-        int state = getState();
-
-        if (state != previousState) {
-            if (Utils.isReady(state)) {
-                startProgressHandler();
-            }
-
-            if (Utils.isPlaying(state)) {
-                manager.onPlay();
-            } else if (Utils.isPaused(state)) {
-                manager.onPause();
-            } else if (Utils.isStopped(state)) {
+        switch (playbackState) {
+            case Player.STATE_IDLE:
+                manager.onStateChange(PlaybackStateCompat.STATE_NONE);
+                break;
+            case Player.STATE_BUFFERING:
+                manager.onBuffering(true);
+                manager.onStateChange(PlaybackStateCompat.STATE_BUFFERING);
+                break;
+            case Player.STATE_READY:
+                manager.onBuffering(false);
+                if (player.getPlayWhenReady()) {
+                    startProgressHandler();
+                    manager.onPlay();
+                    manager.onStateChange(PlaybackStateCompat.STATE_PLAYING);
+                } else {
+                    manager.onPause();
+                    manager.onStateChange(PlaybackStateCompat.STATE_PAUSED);
+                }
+                break;
+            case Player.STATE_ENDED:
                 int next = player.getNextWindowIndex();
                 Boolean isQueueFinished = next == C.INDEX_UNSET;
                 Boolean isTrackFinished = playbackState == Player.STATE_ENDED;
                 if (isQueueFinished) {
                     manager.onStop();
                     manager.onEnd(getCurrentTrack(), getPosition(), isTrackFinished);
+                    manager.onStateChange(PlaybackStateCompat.STATE_STOPPED);
                     return;
                 }
 
@@ -308,10 +321,9 @@ public abstract class ExoPlayback<T extends Player> implements EventListener {
 
                 Track nextTrack = getCurrentTrack();
                 manager.onTrackUpdate(previous, lastKnownPosition, nextTrack, true);
-            }
-
-            manager.onStateChange(state);
-            previousState = state;
+                break;
+            default:
+                break;
         }
     }
 
