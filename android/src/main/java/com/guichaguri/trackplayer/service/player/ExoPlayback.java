@@ -198,6 +198,10 @@ public abstract class ExoPlayback<T extends Player> implements EventListener {
         lastKnownPosition = player.getCurrentPosition();
 
         player.seekTo(time);
+
+        long pos = player.getCurrentPosition();
+        long bufferedDuration = player.getBufferedPercentage() * player.getDuration() / 100;
+        manager.onProgress(pos, bufferedDuration, player.getDuration());
     }
 
     public abstract float getVolume();
