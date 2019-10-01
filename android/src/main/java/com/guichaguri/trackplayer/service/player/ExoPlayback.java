@@ -41,24 +41,29 @@ public abstract class ExoPlayback<T extends Player> implements EventListener {
     // https://github.com/google/ExoPlayer/issues/2728
     protected int lastKnownWindow = C.INDEX_UNSET;
     protected long lastKnownPosition = C.POSITION_UNSET;
-    protected int previousState = PlaybackStateCompat.STATE_NONE;
+    protected boolean isProgressHandlerRunning = false;
 
     private final Handler progressHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             if(msg.what != SHOW_PROGRESS) {
+                isProgressHandlerRunning = false;
                 return;
             }
 
-            if (isPlaying()) {
-                long pos = player.getCurrentPosition();
-                long bufferedDuration = player.getBufferedPercentage() * player.getDuration() / 100;
-                manager.onProgress(pos, bufferedDuration, player.getDuration());
-
-                // Send the message again
-                msg = obtainMessage(SHOW_PROGRESS);
-                sendMessageDelayed(msg, Math.round(mProgressUpdateInterval));
+            if (!isPlaying()) {
+                isProgressHandlerRunning = false;
+                return;
             }
+
+            long pos = player.getCurrentPosition();
+            long bufferedDuration = player.getBufferedPercentage() * player.getDuration() / 100;
+            manager.onProgress(pos, bufferedDuration, player.getDuration());
+
+            // Send the message again
+            msg = obtainMessage(SHOW_PROGRESS);
+            sendMessageDelayed(msg, Math.round(mProgressUpdateInterval));
+            isProgressHandlerRunning = true;
         }
     };
 
@@ -297,7 +302,9 @@ public abstract class ExoPlayback<T extends Player> implements EventListener {
             case Player.STATE_READY:
                 manager.onBuffering(false);
                 if (player.getPlayWhenReady()) {
-                    startProgressHandler();
+                    if (!isProgressHandlerRunning) {
+                        startProgressHandler();
+                    }
                     manager.onPlay();
                     manager.onStateChange(PlaybackStateCompat.STATE_PLAYING);
                 } else {
