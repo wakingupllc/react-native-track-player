@@ -280,6 +280,11 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
     }
 
     @ReactMethod
+    public void clear(final Promise callback) {
+        waitForConnection(() -> binder.getPlayback().clearQueue());
+    }
+
+    @ReactMethod
     public void skip(final String track, final Promise callback) {
         waitForConnection(() -> binder.getPlayback().skip(track, callback));
     }
