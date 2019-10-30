@@ -82,8 +82,14 @@ public class MusicModule extends ReactContextBaseJavaModule implements ServiceCo
      */
     private void waitForConnection(Runnable r) {
         if (binder != null) {
-            binder.post(r);
-            return;
+            try {
+                binder.post(r);
+                return;
+            } catch (NullPointerException e) {
+                // If the service disconnects while trying to post the runnable
+                // we simply add it back to the queue.
+                initCallbacks.add(r);
+            }
         } else {
             initCallbacks.add(r);
         }
